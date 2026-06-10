@@ -6,6 +6,7 @@ from downloader import clone_repo, cleanup_repo
 from scanner import run_scan
 from patcher import generate_patch
 from sandbox import run_sandbox_test
+from database import save_scan, save_finding, save_patch
 
 router = APIRouter()
 
@@ -15,11 +16,14 @@ def verify_signature(payload: bytes, signature: str) -> bool:
     expected = "sha256=" + mac.hexdigest()
     return hmac.compare_digest(expected, signature)
 
-def process_repo(repo_url: str, commit: str):
+def process_repo(repo_url: str, branch: str, commit: str):
     tmp_dir = clone_repo(repo_url, commit)
     try:
         findings = run_scan(tmp_dir)
         print(f"[SCAN COMPLETE] {len(findings)} findings")
+
+        scan_id = save_scan(repo_url, branch, commit)
+        print(f"[DB] Scan saved: {scan_id}")
 
         for finding in findings:
             file_path = finding["file"]
@@ -27,12 +31,17 @@ def process_repo(repo_url: str, commit: str):
                 with open(file_path, "r") as f:
                     file_content = f.read()
 
+                finding_id = save_finding(scan_id, finding)
+                print(f"[DB] Finding saved: {finding_id}")
+
                 patch = generate_patch(finding, file_content)
                 print(f"[PATCH GENERATED] {file_path}:{finding['line']}")
 
                 test_result = run_sandbox_test(tmp_dir, file_path, patch)
                 print(f"[SANDBOX] status={test_result['status']}")
-                print(f"[SANDBOX] stdout={test_result['stdout']}")
+
+                save_patch(finding_id, file_content, patch, test_result["status"], test_result["stdout"])
+                print(f"[DB] Patch saved")
 
             except Exception as e:
                 print(f"[FAILED] {file_path}: {e}")
@@ -56,7 +65,7 @@ async def github_webhook(request: Request, background_tasks: BackgroundTasks):
     branch = data["ref"].split("/")[-1]
     commit = data["after"]
 
-    background_tasks.add_task(process_repo, repo_url, commit)
+    background_tasks.add_task(process_repo, repo_url, branch, commit)
 
     return {
         "status": "accepted",
