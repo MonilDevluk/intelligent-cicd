@@ -5,6 +5,7 @@ from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 from downloader import clone_repo, cleanup_repo
 from scanner import run_scan
 from patcher import generate_patch
+from sandbox import run_sandbox_test
 
 router = APIRouter()
 
@@ -25,11 +26,16 @@ def process_repo(repo_url: str, commit: str):
             try:
                 with open(file_path, "r") as f:
                     file_content = f.read()
+
                 patch = generate_patch(finding, file_content)
                 print(f"[PATCH GENERATED] {file_path}:{finding['line']}")
-                print(patch)
+
+                test_result = run_sandbox_test(tmp_dir, file_path, patch)
+                print(f"[SANDBOX] status={test_result['status']}")
+                print(f"[SANDBOX] stdout={test_result['stdout']}")
+
             except Exception as e:
-                print(f"[PATCH FAILED] {file_path}: {e}")
+                print(f"[FAILED] {file_path}: {e}")
     finally:
         cleanup_repo(tmp_dir)
 
