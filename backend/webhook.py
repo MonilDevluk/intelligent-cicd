@@ -2,6 +2,7 @@ import hmac
 import hashlib
 import os
 from fastapi import APIRouter, Request, HTTPException
+from downloader import clone_repo, cleanup_repo
 
 router = APIRouter()
 
@@ -28,9 +29,12 @@ async def github_webhook(request: Request):
     branch = data["ref"].split("/")[-1]
     commit = data["after"]
 
+    tmp_dir = clone_repo(repo_url, commit)
+
     return {
-        "status": "received",
+        "status": "cloned",
         "repo": repo_url,
         "branch": branch,
-        "commit": commit
+        "commit": commit,
+        "path": tmp_dir
     }
