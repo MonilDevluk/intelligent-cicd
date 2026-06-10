@@ -10,3 +10,14 @@ FastAPI handles async requests natively. Webhook payloads need to be read as raw
 
 **Why a separate router (APIRouter) instead of putting everything in main.py?**
 Each module gets its own file. As the pipeline grows, main.py stays clean and just assembles the pieces.
+
+## Module 3: Scanner Engine
+
+**Why Semgrep over Bandit?**
+Bandit is Python-only. Semgrep supports multiple languages with the same pipeline — future expansion to JavaScript, Java, etc. requires no changes to the scanner module.
+
+**Why p/python ruleset over --config auto?**
+`--config auto` downloads rules at runtime and causes webhook timeouts. `p/python` is a curated, cached ruleset that runs fast enough for a live pipeline.
+
+**Why background tasks instead of inline scanning?**
+GitHub webhooks timeout after 10 seconds. Scanning a real repo takes 30-60 seconds. BackgroundTasks lets us respond immediately with 200 and scan asynchronously — the correct pattern for any webhook-triggered pipeline.
