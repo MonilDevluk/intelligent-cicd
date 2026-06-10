@@ -21,3 +21,14 @@ Bandit is Python-only. Semgrep supports multiple languages with the same pipelin
 
 **Why background tasks instead of inline scanning?**
 GitHub webhooks timeout after 10 seconds. Scanning a real repo takes 30-60 seconds. BackgroundTasks lets us respond immediately with 200 and scan asynchronously — the correct pattern for any webhook-triggered pipeline.
+
+## Module 4: AI Patch Generator
+
+**Why Groq over Gemini?**
+Gemini free tier has quota restrictions in India (limit: 0). Groq provides genuinely free API access with no regional restrictions. The model (Llama 3.1) is capable enough for code repair tasks.
+
+**Why context-enriched prompting?**
+Prior work (Paper 4) used only CWE-ID in the prompt. We send file path, line number, rule ID, severity, message, code snippet, and full file content. This is the core research contribution — we hypothesize this reduces semantic misunderstanding failures.
+
+**Why return the full fixed file instead of just the changed lines?**
+Patch application is simpler and safer with a full file replacement. Diff-based patching requires line-level alignment which breaks easily on reformatted code.
