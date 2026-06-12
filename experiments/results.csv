@@ -1,0 +1,35 @@
+experiment_id,repo,vulnerability_type,prompt_condition,semgrep_detected,patch_compiled,semgrep_clean_after_patch,tests_passed,sandbox_status,notes
+EXP_001,,SQLi,minimal,True,True,True,False,NEEDS_REVIEW,classic string concatenation
+EXP_001,,SQLi,enriched,True,True,True,False,NEEDS_REVIEW,classic string concatenation
+EXP_002,,hardcoded_secrets,minimal,False,False,False,False,NO_FINDING,hardcoded API keys and passwords
+EXP_002,,hardcoded_secrets,enriched,False,False,False,False,NO_FINDING,hardcoded API keys and passwords
+EXP_002b,,hardcoded_secrets,minimal,False,False,False,False,NO_FINDING,hardcoded API keys and passwords - with secrets ruleset
+EXP_002b,,hardcoded_secrets,enriched,False,False,False,False,NO_FINDING,hardcoded API keys and passwords - with secrets ruleset
+EXP_002,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,os.system and subprocess shell=True
+EXP_002,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,os.system and subprocess shell=True
+EXP_003,,path_traversal,minimal,False,False,False,False,NO_FINDING,unsanitized file path construction
+EXP_003,,path_traversal,enriched,False,False,False,False,NO_FINDING,unsanitized file path construction
+EXP_003,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,flask render_template_string with unsanitized input
+EXP_003,,XSS,enriched,True,True,False,False,NEEDS_REVIEW,flask render_template_string with unsanitized input
+EXP_004,,SQLi,minimal,False,False,False,False,NO_FINDING,string formatting SQLi variant
+EXP_004,,SQLi,enriched,False,False,False,False,NO_FINDING,string formatting SQLi variant
+EXP_004,,SQLi,minimal,False,False,False,False,NO_FINDING,f-string SQLi variant
+EXP_004,,SQLi,enriched,False,False,False,False,NO_FINDING,f-string SQLi variant
+EXP_005,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,subprocess.call and subprocess.run shell=True
+EXP_005,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,subprocess.call and subprocess.run shell=True
+EXP_006,,command_injection,minimal,True,True,False,False,NEEDS_REVIEW,Popen os.system f-string and check_call shell=True
+EXP_006,,command_injection,enriched,True,True,False,False,NEEDS_REVIEW,Popen os.system f-string and check_call shell=True
+EXP_007,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,flask template injection string concatenation
+EXP_007,,XSS,enriched,True,True,False,False,NEEDS_REVIEW,flask template injection string concatenation
+EXP_008,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,error message and redirect URL injection
+EXP_008,,XSS,enriched,True,True,False,False,NEEDS_REVIEW,error message and redirect URL injection
+EXP_009,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,nmap wget tar shell=True
+EXP_009,,command_injection,enriched,True,True,False,False,NEEDS_REVIEW,nmap wget tar shell=True
+EXP_010,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,pytest pip git shell=True
+EXP_010,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,pytest pip git shell=True
+EXP_011,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,du pkill chmod shell=True
+EXP_011,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,du pkill chmod shell=True
+EXP_012,,XSS,minimal,True,True,False,False,NEEDS_REVIEW,bio and title template injection
+EXP_012,,XSS,enriched,True,True,True,False,NEEDS_REVIEW,bio and title template injection
+EXP_013,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,news headline author and feedback injection
+EXP_013,,XSS,enriched,True,True,False,False,NEEDS_REVIEW,news headline author and feedback injection

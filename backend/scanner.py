@@ -5,12 +5,15 @@ def run_scan(repo_path: str) -> list:
     result = subprocess.run(
         [
             "semgrep",
-            "--config", "auto",
+            "--config", "p/python",
+            "--config", "p/secrets",
             "--json",
+            "--timeout", "30",
             repo_path
         ],
         capture_output=True,
-        text=True
+        text=True,
+        timeout=60
     )
 
     try:

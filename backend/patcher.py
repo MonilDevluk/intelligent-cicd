@@ -3,12 +3,23 @@ import requests
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-def generate_patch(finding: dict, file_content: str) -> str:
+def generate_patch(finding: dict, file_content: str, prompt_condition: str = "enriched") -> str:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("GROQ_API_KEY not set")
 
-    prompt = f"""You are a security engineer. Fix the following vulnerability in the code.
+    if prompt_condition == "minimal":
+        prompt = f"""You are a security engineer. Fix the following vulnerability.
+
+Vulnerability type: {finding['rule_id'].split('.')[-1]}
+
+Full file content:
+{file_content}
+
+Return ONLY the complete fixed file content, no explanations, no markdown, no code blocks.
+"""
+    else:
+        prompt = f"""You are a security engineer. Fix the following vulnerability in the code.
 
 Vulnerability Details:
 - File: {finding['file']}
