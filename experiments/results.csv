@@ -33,3 +33,37 @@ EXP_012,,XSS,minimal,True,True,False,False,NEEDS_REVIEW,bio and title template i
 EXP_012,,XSS,enriched,True,True,True,False,NEEDS_REVIEW,bio and title template injection
 EXP_013,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,news headline author and feedback injection
 EXP_013,,XSS,enriched,True,True,False,False,NEEDS_REVIEW,news headline author and feedback injection
+EXP_014,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,grep wc find shell=True
+EXP_014,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,grep wc find shell=True
+EXP_015,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,cat ps aux grep shell=True
+EXP_015,,command_injection,enriched,True,True,False,False,NEEDS_REVIEW,cat ps aux grep shell=True
+EXP_016,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,cp mv rm shell=True
+EXP_016,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,cp mv rm shell=True
+EXP_017,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,product name price and tag injection
+EXP_017,,XSS,enriched,True,True,True,False,NEEDS_REVIEW,product name price and tag injection
+EXP_018,,XSS,minimal,True,True,True,False,NEEDS_REVIEW,invoice and notification injection
+EXP_018,,XSS,enriched,True,True,False,False,NEEDS_REVIEW,invoice and notification injection
+EXP_019,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,openssl bash py_compile shell=True
+EXP_019,,command_injection,enriched,True,True,False,False,NEEDS_REVIEW,openssl bash py_compile shell=True
+EXP_020,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,base64 sort wc shell=True
+EXP_020,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,base64 sort wc shell=True
+EXP_021,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,ping traceroute nslookup shell=True
+EXP_021,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,ping traceroute nslookup shell=True
+EXP_022,,command_injection,minimal,False,False,False,False,NO_FINDING,os.system cp rm gzip
+EXP_022,,command_injection,enriched,False,False,False,False,NO_FINDING,os.system cp rm gzip
+EXP_023,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,grep find netstat string-formatting
+EXP_023,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,grep find netstat string-formatting
+EXP_024,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,ls du stat f-string
+EXP_024,,command_injection,enriched,True,True,False,False,NEEDS_REVIEW,ls du stat f-string
+EXP_025,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,subprocess.run bash kill chmod shell=True
+EXP_025,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,subprocess.run bash kill chmod shell=True
+EXP_026,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,convert resize identify shell=True
+EXP_026,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,convert resize identify shell=True
+EXP_027,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,mail dig curl shell=True
+EXP_027,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,mail dig curl shell=True
+EXP_028,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,tar archive extract shell=True
+EXP_028,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,tar archive extract shell=True
+EXP_029,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,nmap iptables tcpdump shell=True
+EXP_029,,command_injection,enriched,True,True,False,False,NEEDS_REVIEW,nmap iptables tcpdump shell=True
+EXP_030,,command_injection,minimal,True,True,True,False,NEEDS_REVIEW,systemctl journalctl shell=True
+EXP_030,,command_injection,enriched,True,True,True,False,NEEDS_REVIEW,systemctl journalctl shell=True
