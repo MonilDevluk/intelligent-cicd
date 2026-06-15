@@ -32,6 +32,8 @@ def process_repo(repo_url: str, branch: str, commit: str):
                     file_content = f.read()
                 finding_id = save_finding(scan_id, finding)
                 logger.info(f"[DB] Finding saved: {finding_id}")
+                import time
+                time.sleep(3)
                 for condition in ["minimal", "enriched"]:
                     try:
                         patch = generate_patch(finding, file_content, prompt_condition=condition)
