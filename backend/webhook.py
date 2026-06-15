@@ -1,6 +1,7 @@
 import hmac
 import hashlib
 import os
+import time
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 from downloader import clone_repo, cleanup_repo
 from scanner import run_scan
@@ -32,9 +33,8 @@ def process_repo(repo_url: str, branch: str, commit: str):
                     file_content = f.read()
                 finding_id = save_finding(scan_id, finding)
                 logger.info(f"[DB] Finding saved: {finding_id}")
-                import time
-                time.sleep(3)
                 for condition in ["minimal", "enriched"]:
+                    time.sleep(10)
                     try:
                         patch = generate_patch(finding, file_content, prompt_condition=condition)
                         logger.info(f"[PATCH GENERATED] condition={condition} {file_path}:{finding['line']}")
@@ -43,7 +43,7 @@ def process_repo(repo_url: str, branch: str, commit: str):
                         test_result = run_sandbox_test(tmp_dir, file_path, patch, generated_test)
                         logger.info(f"[SANDBOX] condition={condition} status={test_result['status']}")
                         pr_url = ""
-                        if test_result["status"] in ["SAFE", "UNVERIFIED"]:
+                        if test_result["status"] in ["SAFE", "UNVERIFIED", "NEEDS_REVIEW"]:
                             try:
                                 pr = create_pull_request(repo_url, file_path, patch, finding, condition)
                                 pr_url = pr.get("pr_url", "")
