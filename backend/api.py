@@ -19,11 +19,16 @@ def get_scan(scan_id: str):
         "findings": findings.data
     }
 
-@router.get("/findings/{finding_id}/patch")
-def get_patch(finding_id: str):
+@router.get("/findings/{finding_id}/patches")
+def get_patches(finding_id: str):
     client = get_client()
     result = client.table("patches").select("*").eq("finding_id", finding_id).execute()
-    return result.data[0] if result.data else None
+    patches = {"minimal": None, "enriched": None}
+    for patch in result.data:
+        condition = patch.get("prompt_condition", "")
+        if condition in patches:
+            patches[condition] = patch
+    return patches
 
 @router.get("/stats")
 def get_stats():

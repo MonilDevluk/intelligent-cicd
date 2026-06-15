@@ -18,7 +18,7 @@ const statusColor = (s) => {
 export default function App() {
   const [scans, setScans] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [patch, setPatch] = useState(null);
+  const [patches, setPatches] = useState({});
   const [stats, setStats] = useState(null);
   const [activeFinding, setActiveFinding] = useState(null);
 
@@ -30,15 +30,33 @@ export default function App() {
   const loadScan = (id) => {
     axios.get(`${API}/scans/${id}`).then(r => {
       setSelected(r.data);
-      setPatch(null);
+      setPatches({});
       setActiveFinding(null);
     });
   };
 
-  const loadPatch = (findingId) => {
+  const loadPatches = (findingId) => {
     setActiveFinding(findingId);
-    axios.get(`${API}/findings/${findingId}/patch`).then(r => setPatch(r.data));
+    axios.get(`${API}/findings/${findingId}/patches`).then(r => {
+      setPatches(prev => ({ ...prev, [findingId]: r.data }));
+    });
   };
+
+  const PatchBlock = ({ label, patch, borderColor }) => (
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontWeight: "bold", color: borderColor, textTransform: "uppercase" }}>{label} Prompt</span>
+        {patch && (
+          <span style={{ background: statusColor(patch.sandbox_status), color: "#fff", padding: "2px 8px", borderRadius: "4px", fontSize: "10px" }}>
+            {patch.sandbox_status}
+          </span>
+        )}
+      </div>
+      <pre style={{ background: "#0d1117", border: `1px solid ${borderColor}`, borderRadius: "4px", padding: "12px", fontSize: "11px", overflow: "auto", maxHeight: "280px", margin: 0 }}>
+        {patch ? patch.patched_code : "No patch available"}
+      </pre>
+    </div>
+  );
 
   return (
     <div style={{ fontFamily: "monospace", background: "#0d1117", minHeight: "100vh", color: "#c9d1d9", padding: "24px" }}>
@@ -82,7 +100,9 @@ export default function App() {
         <div>
           {selected && (
             <>
-              <h3 style={{ color: "#8b949e", fontSize: "12px", textTransform: "uppercase" }}>Findings</h3>
+              <h3 style={{ color: "#8b949e", fontSize: "12px", textTransform: "uppercase" }}>
+                Findings — {selected.scan?.repo_url?.replace("https://github.com/", "")}
+              </h3>
               {selected.findings.length === 0 && <p style={{ color: "#8b949e" }}>No findings for this scan.</p>}
               {selected.findings.map(f => (
                 <div key={f.id} style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: "6px", padding: "16px", marginBottom: "12px" }}>
@@ -90,34 +110,25 @@ export default function App() {
                     <span style={{ color: severityColor(f.severity), fontWeight: "bold", fontSize: "12px" }}>{f.severity}</span>
                     <span style={{ color: "#8b949e", fontSize: "11px" }}>{f.file_path.split("/").pop()}:{f.line_number}</span>
                   </div>
-                  <div style={{ fontSize: "13px", marginBottom: "8px" }}>{f.message}</div>
-                  <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "8px" }}>{f.rule_id}</div>
-                  <button onClick={() => loadPatch(f.id)}
-                    style={{ background: "#21262d", border: "1px solid #30363d", color: "#58a6ff", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>
-                    View Patch
+                  <div style={{ fontSize: "13px", marginBottom: "4px" }}>{f.message}</div>
+                  <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "12px" }}>{f.rule_id}</div>
+
+                  <div style={{ background: "#0d1117", border: "1px solid #30363d", borderRadius: "4px", padding: "12px", marginBottom: "12px" }}>
+                    <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "4px" }}>ORIGINAL (Vulnerable)</div>
+                    <pre style={{ fontSize: "11px", margin: 0, overflow: "auto", maxHeight: "200px", color: "#e74c3c" }}>
+                      {f.code_snippet}
+                    </pre>
+                  </div>
+
+                  <button onClick={() => loadPatches(f.id)}
+                    style={{ background: "#21262d", border: "1px solid #30363d", color: "#58a6ff", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px", marginBottom: "12px" }}>
+                    {activeFinding === f.id ? "Hide Patches" : "View Patches"}
                   </button>
 
-                  {activeFinding === f.id && patch && (
-                    <div style={{ marginTop: "12px" }}>
-                      <div style={{ display: "flex", gap: "8px", marginBottom: "8px", alignItems: "center" }}>
-                        <span style={{ background: statusColor(patch.sandbox_status), color: "#fff", padding: "2px 8px", borderRadius: "4px", fontSize: "11px" }}>
-                          {patch.sandbox_status}
-                        </span>
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                          <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "4px" }}>ORIGINAL</div>
-                          <pre style={{ background: "#0d1117", border: "1px solid #e74c3c", borderRadius: "4px", padding: "12px", fontSize: "11px", overflow: "auto", maxHeight: "300px" }}>
-                            {patch.original_code}
-                          </pre>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "4px" }}>PATCHED</div>
-                          <pre style={{ background: "#0d1117", border: "1px solid #2ecc71", borderRadius: "4px", padding: "12px", fontSize: "11px", overflow: "auto", maxHeight: "300px" }}>
-                            {patch.patched_code}
-                          </pre>
-                        </div>
-                      </div>
+                  {activeFinding === f.id && patches[f.id] && (
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <PatchBlock label="Minimal" patch={patches[f.id].minimal} borderColor="#f39c12" />
+                      <PatchBlock label="Enriched" patch={patches[f.id].enriched} borderColor="#2ecc71" />
                     </div>
                   )}
                 </div>
