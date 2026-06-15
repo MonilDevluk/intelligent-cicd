@@ -4,7 +4,8 @@ import os
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 from downloader import clone_repo, cleanup_repo
 from scanner import run_scan
-from patcher import generate_patch
+from patcher import generate_patch, generate_test
+from github_pr import create_pull_request
 from sandbox import run_sandbox_test
 from logger import logger
 from database import save_scan, save_finding, save_patch
@@ -35,9 +36,28 @@ def process_repo(repo_url: str, branch: str, commit: str):
                     try:
                         patch = generate_patch(finding, file_content, prompt_condition=condition)
                         logger.info(f"[PATCH GENERATED] condition={condition} {file_path}:{finding['line']}")
-                        test_result = run_sandbox_test(tmp_dir, file_path, patch)
+                        generated_test = generate_test(finding, patch)
+                        logger.info(f"[TEST GENERATED] condition={condition} {file_path}:{finding['line']}")
+                        test_result = run_sandbox_test(tmp_dir, file_path, patch, generated_test)
                         logger.info(f"[SANDBOX] condition={condition} status={test_result['status']}")
-                        save_patch(finding_id, file_content, patch, test_result["status"], test_result["stdout"], prompt_condition=condition)
+                        pr_url = ""
+                        if test_result["status"] in ["SAFE", "UNVERIFIED"]:
+                            try:
+                                pr = create_pull_request(repo_url, file_path, patch, finding, condition)
+                                pr_url = pr.get("pr_url", "")
+                                logger.info(f"[PR CREATED] {pr_url}")
+                            except Exception as pr_e:
+                                logger.error(f"[PR FAILED] {pr_e}")
+                        save_patch(
+                            finding_id,
+                            file_content,
+                            patch,
+                            test_result["status"],
+                            test_result["stdout"],
+                            prompt_condition=condition,
+                            generated_test=generated_test,
+                            pr_url=pr_url
+                        )
                         logger.info(f"[DB] Patch saved: condition={condition}")
                     except Exception as e:
                         logger.error(f"[FAILED] condition={condition} {file_path}: {e}")
