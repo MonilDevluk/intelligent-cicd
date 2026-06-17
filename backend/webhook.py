@@ -13,6 +13,9 @@ from database import save_scan, save_finding, save_patch
 
 router = APIRouter()
 
+# Global lock — prevents concurrent pipelines
+_pipeline_running = False
+
 def verify_signature(payload: bytes, signature: str) -> bool:
     secret = os.getenv("GITHUB_WEBHOOK_SECRET", "").encode()
     mac = hmac.new(secret, payload, hashlib.sha256)
@@ -20,6 +23,12 @@ def verify_signature(payload: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected, signature)
 
 def process_repo(repo_url: str, branch: str, commit: str):
+    global _pipeline_running
+    if _pipeline_running:
+        logger.warning(f"[LOCK] Pipeline already running. Skipping: {commit[:7]}")
+        return
+    _pipeline_running = True
+    logger.info(f"[LOCK] Pipeline started: {commit[:7]}")
     tmp_dir = clone_repo(repo_url, commit)
     try:
         findings = run_scan(tmp_dir)
@@ -67,6 +76,8 @@ def process_repo(repo_url: str, branch: str, commit: str):
                 logger.error(f"[FAILED] {file_path}: {e}")
     finally:
         cleanup_repo(tmp_dir)
+        _pipeline_running = False
+        logger.info("[LOCK] Pipeline released.")
 
 @router.post("/webhook")
 async def github_webhook(request: Request, background_tasks: BackgroundTasks):
@@ -80,6 +91,10 @@ async def github_webhook(request: Request, background_tasks: BackgroundTasks):
     repo_url = data["repository"]["clone_url"]
     branch = data["ref"].split("/")[-1]
     commit = data["after"]
+    if _pipeline_running:
+        logger.warning(f"[LOCK] Push received but pipeline busy. Ignoring: {commit[:7]}")
+        return {"status": "busy", "message": "Pipeline already running. Push ignored."}
+
     background_tasks.add_task(process_repo, repo_url, branch, commit)
     return {
         "status": "accepted",

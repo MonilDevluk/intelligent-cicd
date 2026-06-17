@@ -1,3 +1,4 @@
+from logger import logger
 import os
 import time
 import requests
@@ -18,12 +19,12 @@ def call_groq(prompt: str, api_key: str, max_retries: int = 3) -> str:
             )
             if response.status_code == 200:
                 return response.json()["choices"][0]["message"]["content"]
-            print(f"[GROQ] Attempt {attempt+1} failed: {response.status_code} {response.text}")
+            logger.error(f"[GROQ] Attempt {attempt+1} failed: {response.status_code} {response.text}")
         except Exception as e:
-            print(f"[GROQ] Attempt {attempt+1} exception: {e}")
+            logger.error(f"[GROQ] Attempt {attempt+1} exception: {e}")
         if attempt < max_retries - 1:
             wait = max(2 ** attempt, 5)
-            print(f"[GROQ] Retrying in {wait}s...")
+            logger.warning(f"[GROQ] Retrying in {wait}s...")
             time.sleep(wait)
     raise RuntimeError(f"Groq API failed after {max_retries} attempts")
 

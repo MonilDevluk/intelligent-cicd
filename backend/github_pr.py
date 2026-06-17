@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 import base64
 
@@ -28,7 +29,7 @@ def create_pull_request(repo_url: str, file_path: str, patched_content: str, fin
 
     # Create new branch name
     rule_short = finding["rule_id"].split(".")[-1][:20]
-    new_branch = f"autofix/{condition}-{rule_short}-L{finding['line']}"
+    new_branch = f"autofix/{condition}-{rule_short}-L{finding['line']}-{int(time.time())}"
 
     # Create new branch
     requests.post(f"{base_url}/git/refs", headers=headers, json={
