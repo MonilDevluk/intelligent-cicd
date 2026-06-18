@@ -238,7 +238,7 @@ export default function App() {
                   <div style={{ background: T.vulnBg, border: `0.5px solid ${T.vulnBorder}`, borderRadius: "8px", padding: "12px", marginBottom: "14px" }}>
                     <div style={{ fontSize: "11px", color: T.vulnText, marginBottom: "6px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>Vulnerable Code</div>
                     <pre style={{ fontSize: "11px", margin: 0, overflow: "auto", maxHeight: "150px", color: T.textSecondary, fontFamily: "monospace" }}>
-                      {f.code_snippet}
+                      {(patches[f.id]?.[activeCondition[f.id] || "minimal"]?.original_code) || f.code_snippet}
                     </pre>
                   </div>
                   <button onClick={() => loadPatches(f.id)}

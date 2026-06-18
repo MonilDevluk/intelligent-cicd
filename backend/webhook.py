@@ -54,7 +54,7 @@ def process_repo(repo_url: str, branch: str, commit: str):
                         pr_url = ""
                         if test_result["status"] in ["SAFE", "UNVERIFIED", "NEEDS_REVIEW"]:
                             try:
-                                pr = create_pull_request(repo_url, file_path, patch, finding, condition)
+                                pr = create_pull_request(repo_url, file_path, patch, finding, condition, original_content=file_content)
                                 pr_url = pr.get("pr_url", "")
                                 logger.info(f"[PR CREATED] {pr_url}")
                             except Exception as pr_e:
