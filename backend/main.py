@@ -8,9 +8,11 @@ load_dotenv()
 
 app = FastAPI(title="Intelligent CI/CD")
 
+origins = ["http://localhost:3000"] # add allowed origins here, e.g. the UI's origin
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"]
 )
