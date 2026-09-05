@@ -1,0 +1,84 @@
+# ============================================================
+# Autonomous Vulnerability Remediation
+# Research Experiment Configuration
+# ============================================================
+
+experiment:
+  name: "context_aware_validation_guided_avr"
+  version: "1.0"
+
+  # Number of independent LLM generations per vulnerability
+  # and context condition.
+  runs_per_condition: 3
+
+  conditions:
+    - C0
+    - C1
+    - C2
+    - C3
+
+model:
+  provider: "groq"
+
+  # Keep this fixed during a single experimental campaign.
+  name: "qwen/qwen3.6-27b"
+
+  temperature: 0.0
+
+  # Must remain below the current 1000 OTPM limit.
+  max_tokens: 700
+
+  timeout_seconds: 60
+
+  max_retries: 2
+
+validation:
+  syntax: true
+
+  semgrep:
+    enabled: true
+    configs:
+      - "p/python"
+      - "p/secrets"
+    timeout_seconds: 30
+
+  bandit:
+    enabled: true
+    timeout_seconds: 60
+
+  pytest:
+    enabled: true
+    timeout_seconds: 120
+
+  # A patch is fully validated only when security and
+  # functional validation both succeed.
+  require_security: true
+  require_functional: true
+
+patch:
+  max_attempts: 3
+
+  # Prevent empty LLM output from entering validation.
+  reject_empty: true
+
+  # Prevent markdown code fences from becoming source files.
+  clean_markdown_fences: true
+
+dataset:
+  vulnerability_directory: "experiments/vulns"
+
+output:
+  directory: "research/results"
+
+  jsonl: "ablation_results.jsonl"
+  csv: "ablation_results.csv"
+
+  # Save raw prompts and generated patches for reproducibility.
+  save_raw_artifacts: true
+
+reproducibility:
+  record_timestamp: true
+  record_model: true
+  record_prompt_hash: true
+  record_patch_hash: true
+  record_environment: true
