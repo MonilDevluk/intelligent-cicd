@@ -3,3 +3,7 @@ frontend/node_modules/
 .env
 __pycache__/
 *.pyc
+
+# Local research/runtime artifacts
+research/logs/
+research/results/archive/

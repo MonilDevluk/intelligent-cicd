@@ -26,7 +26,7 @@ model:
   temperature: 0.0
 
   # Must remain below the current 1000 OTPM limit.
-  max_tokens: 700
+  max_tokens: 400
 
   timeout_seconds: 60
 

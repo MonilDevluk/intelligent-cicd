@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -278,143 +279,102 @@ def run_ground_truth_security_test(
     patched_content: str,
 ) -> dict:
     """
-    Execute the benchmark's independent security test against the
-    supplied patched source.
+    Run the benchmark's independent ground-truth security test against
+    the patched module in an isolated temporary repository structure.
 
-    The test is copied into an isolated temporary directory together
-    with the patched module. This guarantees that pytest imports the
-    patched implementation rather than the original vulnerable fixture.
+    The repository layout is preserved because benchmark tests may use
+    paths relative to their location.
     """
+    repo_root = Path(repo_path).resolve()
+    target_file = Path(file_path).resolve()
 
-    import tempfile
-    import subprocess
-    from pathlib import Path
-
-    repo = Path(repo_path).resolve()
-    target = Path(file_path).resolve()
-
-    benchmark_name = target.stem
+    benchmark_name = target_file.name
+    benchmark_stem = target_file.stem
 
     test_path = (
-        repo
+        repo_root
         / "research"
         / "datasets"
         / "tests"
-        / f"test_{benchmark_name}_security.py"
+        / f"test_{benchmark_stem}_security.py"
     )
 
+    result = {
+        "available": False,
+        "passed": False,
+        "stdout": "",
+        "stderr": "",
+        "returncode": None,
+        "test_path": str(test_path),
+    }
+
     if not test_path.exists():
-        return {
-            "available": False,
-            "passed": False,
-            "stdout": "",
-            "stderr": "",
-            "returncode": None,
-            "test_path": str(test_path),
-            "error": f"Ground-truth test not found: {test_path}",
-        }
+        result["error"] = f"Ground-truth test not found: {test_path}"
+        return result
+
+    result["available"] = True
 
     try:
-        with tempfile.TemporaryDirectory(
-            prefix=f"ground_truth_{benchmark_name}_"
-        ) as tmp:
+        with tempfile.TemporaryDirectory(prefix="avr_ground_truth_") as tmp:
+            sandbox_root = Path(tmp) / "repo"
 
-            sandbox = Path(tmp)
-
-            # ------------------------------------------------
-            # Write the supplied PATCHED module.
-            # ------------------------------------------------
-            module_path = (
-                sandbox / f"{benchmark_name}.py"
+            # Reproduce only the directory structure needed by the test.
+            sandbox_target = (
+                sandbox_root
+                / "experiments"
+                / "vulns"
+                / benchmark_name
             )
 
-            module_path.write_text(
-                patched_content,
-                encoding="utf-8",
+            sandbox_test = (
+                sandbox_root
+                / "research"
+                / "datasets"
+                / "tests"
+                / test_path.name
             )
 
-            # ------------------------------------------------
-            # Copy the independent security test.
-            # ------------------------------------------------
-            destination_test = (
-                sandbox / test_path.name
-            )
+            sandbox_target.parent.mkdir(parents=True, exist_ok=True)
+            sandbox_test.parent.mkdir(parents=True, exist_ok=True)
 
-            test_text = test_path.read_text(
-                encoding="utf-8"
-            )
+            # Install patched benchmark.
+            sandbox_target.write_text(patched_content)
 
-            # The test previously contained a sys.path bootstrap
-            # pointing at experiments/vulns. Remove it because the
-            # isolated sandbox itself must be the import location.
-            test_text = re.sub(
-                r"import sys\s+"
-                r"from pathlib import Path\s+"
-                r"BENCHMARK_DIR\s*=\s*\(.*?\)\s*"
-                r"if str\(BENCHMARK_DIR\) not in sys\.path:\s*"
-                r"sys\.path\.insert\(0,\s*str\(BENCHMARK_DIR\)\)\s*",
-                "",
-                test_text,
-                flags=re.DOTALL,
-            )
+            # Keep the ground-truth test byte-for-byte unchanged.
+            shutil.copy2(test_path, sandbox_test)
 
-            destination_test.write_text(
-                test_text,
-                encoding="utf-8",
-            )
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(sandbox_target.parent)
 
-            # ------------------------------------------------
-            # Run pytest INSIDE the isolated directory.
-            # ------------------------------------------------
-            p = subprocess.run(
+            proc = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     "-m",
                     "pytest",
                     "-q",
-                    destination_test.name,
+                    str(sandbox_test),
                 ],
-                cwd=sandbox,
-                text=True,
+                cwd=str(sandbox_root),
+                env=env,
                 capture_output=True,
+                text=True,
                 timeout=120,
-                env={
-                    **__import__("os").environ,
-                    "PYTHONPATH": str(sandbox),
-                },
             )
 
-            return {
-                "available": True,
-                "passed": p.returncode == 0,
-                "stdout": p.stdout or "",
-                "stderr": p.stderr or "",
-                "returncode": p.returncode,
-                "test_path": str(test_path),
-            }
+            result["returncode"] = proc.returncode
+            result["stdout"] = proc.stdout
+            result["stderr"] = proc.stderr
+            result["passed"] = proc.returncode == 0
 
     except subprocess.TimeoutExpired as exc:
-        return {
-            "available": True,
-            "passed": False,
-            "stdout": str(exc.stdout or ""),
-            "stderr": str(exc.stderr or ""),
-            "returncode": None,
-            "test_path": str(test_path),
-            "error": "Ground-truth security test timed out",
-        }
+        result["error"] = "Ground-truth security test timed out."
+        result["stdout"] = exc.stdout or ""
+        result["stderr"] = exc.stderr or ""
 
     except Exception as exc:
-        return {
-            "available": True,
-            "passed": False,
-            "stdout": "",
-            "stderr": "",
-            "returncode": None,
-            "test_path": str(test_path),
-            "error": str(exc),
-        }
+        result["error"] = f"{type(exc).__name__}: {exc}"
 
+    return result
 
 def validate_patch(
     repo_path: str,
@@ -513,7 +473,8 @@ ground_truth_ok=False,
 
         ground_truth = run_ground_truth_security_test(
             sandbox_dir,
-            benchmark_name,
+            sandbox_file,
+            patched_content,
         )
 
         metrics = calculate_patch_metrics(

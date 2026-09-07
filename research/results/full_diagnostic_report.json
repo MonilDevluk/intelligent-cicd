@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-09-05T16:45:27.319272+00:00",
-  "passed": 13,
-  "failed": 3,
+  "timestamp": "2026-09-06T15:12:55.740810+00:00",
+  "passed": 16,
+  "failed": 0,
   "total": 16,
   "results": [
     {
@@ -31,8 +31,8 @@
     },
     {
       "name": "6. CMDI-01 GROUND TRUTH",
-      "status": "FAIL",
-      "detail": "Traceback (most recent call last):\n  File \"/home/monil/intelligent-cicd/research/scripts/full_diagnostic.py\", line 31, in check\n    value = fn()\n  File \"/home/monil/intelligent-cicd/research/scripts/full_diagnostic.py\", line 292, in ground_truth_check\n    raise RuntimeError(\n    ...<4 lines>...\n    )\nRuntimeError: Known-good patch failed ground-truth tests.\n\n\n"
+      "status": "PASS",
+      "detail": "{'vulnerable_fixture_passed': False, 'known_good_passed': True, 'original_returncode': 1, 'known_good_returncode': 0}"
     },
     {
       "name": "7. SEMGREP DETECTION",
@@ -51,13 +51,13 @@
     },
     {
       "name": "10. VALIDATOR \u2014 ORIGINAL VULNERABLE CODE",
-      "status": "FAIL",
-      "detail": "Traceback (most recent call last):\n  File \"/home/monil/intelligent-cicd/research/scripts/full_diagnostic.py\", line 31, in check\n    value = fn()\n  File \"/home/monil/intelligent-cicd/research/scripts/full_diagnostic.py\", line 445, in validator_original_check\n    result = validate_patch(\n        repo_path=str(ROOT),\n    ...<3 lines>...\n        generated_test=None,\n    )\n  File \"/home/monil/intelligent-cicd/backend/validator.py\", line 514, in validate_patch\n    ground_truth = run_ground_truth_security_test(\n        sandbox_dir,\n        benchmark_name,\n    )\nTypeError: run_ground_truth_security_test() missing 1 required positional argument: 'patched_content'\n"
+      "status": "PASS",
+      "detail": "{'status': 'VALIDATION_FAILED', 'syntax_ok': True, 'security_ok': False, 'functional_ok': False, 'ground_truth_available': True, 'ground_truth_ok': False, 'semgrep_ok': False, 'bandit_ok': False}"
     },
     {
       "name": "11. VALIDATOR \u2014 KNOWN GOOD PATCH",
-      "status": "FAIL",
-      "detail": "Traceback (most recent call last):\n  File \"/home/monil/intelligent-cicd/research/scripts/full_diagnostic.py\", line 31, in check\n    value = fn()\n  File \"/home/monil/intelligent-cicd/research/scripts/full_diagnostic.py\", line 514, in known_good_check\n    result = validate_patch(\n        repo_path=str(ROOT),\n    ...<3 lines>...\n        generated_test=None,\n    )\n  File \"/home/monil/intelligent-cicd/backend/validator.py\", line 514, in validate_patch\n    ground_truth = run_ground_truth_security_test(\n        sandbox_dir,\n        benchmark_name,\n    )\nTypeError: run_ground_truth_security_test() missing 1 required positional argument: 'patched_content'\n"
+      "status": "PASS",
+      "detail": "{'status': 'SECURITY_FIXED_FUNCTIONAL_FAIL', 'syntax_ok': True, 'security_ok': True, 'functional_ok': False, 'ground_truth_available': True, 'ground_truth_ok': True, 'semgrep_ok': True, 'bandit_ok': False}"
     },
     {
       "name": "12. REFINEMENT ENGINE",
@@ -82,7 +82,7 @@
     {
       "name": "16. GIT STATE",
       "status": "PASS",
-      "detail": "## research-avr\n M backend/patcher.py\n?? backend/context_builder.py\n?? backend/refinement.py\n?? backend/validator.py\n?? research/\n"
+      "detail": "## research-avr\n M backend/requirements.txt\n M backend/validator.py\n M research/results/full_diagnostic_report.json\n"
     }
   ]
 }

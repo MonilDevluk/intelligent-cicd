@@ -160,7 +160,7 @@ def test_generate_patch_returns_groq_output_directly(mocker, monkeypatch):
 
     result = patcher.generate_patch(FAKE_FINDING, FAKE_FILE_CONTENT, prompt_condition="enriched")
 
-    assert result == "def get_user(user_id):\n    cursor.execute(query, (user_id,))\n"
+    assert result == "def get_user(user_id):\n    cursor.execute(query, (user_id,))"
 
 
 # ---------- generate_test ----------

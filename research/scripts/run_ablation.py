@@ -171,9 +171,14 @@ def generate_patch_with_context(
         context,
     )
 
+    patch_max_tokens = int(
+        os.getenv("GROQ_PATCH_MAX_TOKENS", "1200")
+    )
+
     return call_groq(
         prompt,
         api_key,
+        max_tokens_override=patch_max_tokens,
     )
 
 
@@ -468,25 +473,51 @@ def run_single(
         # Generate test
         # ------------------------------
 
+        # Generated tests are auxiliary evidence.
+        # Their failure must NOT prevent independent security
+        # ground-truth validation of the generated patch.
+        generated_test = None
+
         test_start = time.perf_counter()
 
-        generated_test = generate_test(
-            finding,
-            patch,
-        )
+        try:
+            generated_test = generate_test(
+                finding,
+                patch,
+            )
+
+            if generated_test and generated_test.strip():
+                result["test_generation_ok"] = True
+
+                save_artifact(
+                    experiment_id,
+                    "generated_test.py",
+                    generated_test,
+                )
+            else:
+                save_artifact(
+                    experiment_id,
+                    "generated_test_error.txt",
+                    "LLM returned empty generated test.",
+                )
+
+        except Exception as test_error:
+            result["test_generation_ok"] = False
+
+            save_artifact(
+                experiment_id,
+                "generated_test_error.txt",
+                str(test_error),
+            )
+
+            print(
+                f"  [WARN] Generated test failed: "
+                f"{test_error}"
+            )
 
         result["test_generation_seconds"] = (
             time.perf_counter()
             - test_start
-        )
-
-        if generated_test.strip():
-            result["test_generation_ok"] = True
-
-        save_artifact(
-            experiment_id,
-            "generated_test.py",
-            generated_test,
         )
 
         # ------------------------------
