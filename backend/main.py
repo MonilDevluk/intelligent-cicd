@@ -10,9 +10,9 @@ app = FastAPI(title="Intelligent CI/CD")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"]
 )
 
 app.include_router(webhook_router)
